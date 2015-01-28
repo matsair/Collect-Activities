@@ -25,3 +25,8 @@ proguard/
 
 # Log Files
 *.log
+
+# Intellij project files
+*.iws
+.idea/workspace.xml
+.idea/tasks.xml
