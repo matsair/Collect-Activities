@@ -133,18 +133,18 @@ public class MainActivity extends ActionBarActivity {
                                     public void run() {
                                         try{
                                             findFitnessDataSources();
-                                            handler.postDelayed(this, 6000);
+                                            handler.postDelayed(this, 10000);
                                         }
                                         catch (Exception e) {
                                             Log.i(TAG, "Something wrong with interval handler");
                                         }
                                         finally{
                                             //also call the same runnable
-                                            handler.postDelayed(this, 6000);
+                                            handler.postDelayed(this, 10000);
                                         }
                                     }
                                 };
-                                handler.postDelayed(runnable, 6000);
+                                handler.postDelayed(runnable, 10000);
 
 
                                 // [START auth_build_googleapiclient_ending]
@@ -257,12 +257,12 @@ public class MainActivity extends ActionBarActivity {
                             Log.i(TAG, "Data Source type: " + dataSource.getDataType().getName());
 
                             //Let's register a listener to receive Activity data!
-                            if (dataSource.getDataType().equals(DataType.TYPE_ACTIVITY_SAMPLE)
-                                    && mListener == null) {
-                                Log.i(TAG, "Data source for ACTIVITY_SAMPLE found!  Registering.");
+//                            if (dataSource.getDataType().equals(DataType.TYPE_ACTIVITY_SAMPLE)
+//                                    && mListener == null) {
+//                                Log.i(TAG, "Data source for ACTIVITY_SAMPLE found!  Registering.");
                                 registerFitnessDataListener(dataSource,
                                         DataType.TYPE_ACTIVITY_SAMPLE);
-                            }
+//                            }
                         }
                     }
                 });
