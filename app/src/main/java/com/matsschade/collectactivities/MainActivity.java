@@ -195,44 +195,44 @@ public class MainActivity extends ActionBarActivity {
         mListener = new OnDataPointListener() {
             @Override
             public void onDataPoint(final DataPoint dataPoint) {
-                    final List<Field> field = dataPoint.getDataType().getFields();
-                    final Value val = dataPoint.getValue(field.get(0));
-                    final String detectedActivity = val.toString();
-                        runOnUiThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                switch (detectedActivity) {
-                                    case "0":
-                                        activity.setText("In Vehicle");
-                                        break;
-                                    case "1":
-                                        activity.setText("On Bicycle");
-                                        break;
-                                    case "2":
-                                        activity.setText("On Foot");
-                                        break;
-                                    case "3":
-                                        activity.setText("Still");
-                                        break;
-                                    case "4":
-                                        activity.setText("Unknown Activity");
-                                        break;
-                                    case "5":
-                                        activity.setText("Tilting");
-                                        break;
-                                    case "7":
-                                        activity.setText("Walking");
-                                        break;
-                                    case "8":
-                                        activity.setText("Running");
-                                        break;
-                                    default:
-                                        activity.setText("Not Working");
-                                }
-                                Log.i(TAG, detectedActivity);
-                            }
-                        });
-                }
+                final List<Field> field = dataPoint.getDataType().getFields();
+                final Value val = dataPoint.getValue(field.get(0));
+                final String detectedActivity = val.toString();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        switch (detectedActivity) {
+                            case "0":
+                                activity.setText("In Vehicle");
+                                break;
+                            case "1":
+                                activity.setText("On Bicycle");
+                                break;
+                            case "2":
+                                activity.setText("On Foot");
+                                break;
+                            case "3":
+                                activity.setText("Still");
+                                break;
+                            case "4":
+                                activity.setText("Unknown Activity");
+                                break;
+                            case "5":
+                                activity.setText("Tilting");
+                                break;
+                            case "7":
+                                activity.setText("Walking");
+                                break;
+                            case "8":
+                                activity.setText("Running");
+                                break;
+                            default:
+                                activity.setText("Not Working");
+                        }
+                    }
+                });
+                Log.i(TAG, detectedActivity);
+            }
         };
         Fitness.SensorsApi.add(
                 mClient,
