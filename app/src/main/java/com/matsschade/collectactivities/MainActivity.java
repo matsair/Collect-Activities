@@ -55,44 +55,31 @@ import com.matsschade.logger.MessageOnlyLogFilter;
 
 
 public class MainActivity extends ActionBarActivity {
-    public static final String TAG = "BasicSensorsApi";
-    // [START auth_variable_references]
-    private static final int REQUEST_OAUTH = 1;
+    public static final String TAG = "CollectActivities";
 
-    /**
-     *  Track whether an authorization activity is stacking over the current activity, i.e. when
-     *  a known auth error is being resolved, such as showing the account chooser or presenting a
-     *  consent dialog. This avoids common duplications as might happen on screen rotations, etc.
-     */
+    // Authentication specific variables
+    private static final int REQUEST_OAUTH = 1;
     private static final String AUTH_PENDING = "auth_state_pending";
     private boolean authInProgress = false;
 
+    // Google API Client that needs to be connected to, to provide the services
     private GoogleApiClient mClient = null;
-    // [END auth_variable_references]
 
-    // [START mListener_variable_reference]
-    // Need to hold a reference to this listener, as it's passed into the "unregister"
-    // method in order to stop all sensors from sending data to this listener.
+    // Listens to new TYPE events
     private OnDataPointListener mListener;
-    // [END mListener_variable_reference]
 
+    // To display current activity in activity_main.xml
     TextView activity;
-    final Handler handler = new Handler();
 
-    // [START auth_oncreate_setup_beginning]
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Put application specific code here.
-        // [END auth_oncreate_setup_beginning]
+
         setContentView(R.layout.activity_main);
-        // This method sets up our custom logger, which will print all log messages to the device
-        // screen, as well as to adb logcat.
+
         initializeLogging();
 
         activity = (TextView)findViewById(R.id.activity);
-
-        // [START auth_oncreate_setup_ending]
 
         if (savedInstanceState != null) {
             authInProgress = savedInstanceState.getBoolean(AUTH_PENDING);
@@ -100,19 +87,8 @@ public class MainActivity extends ActionBarActivity {
 
         buildFitnessClient();
     }
-    // [END auth_oncreate_setup_ending]
 
-    // [START auth_build_googleapiclient_beginning]
-    /**
-     *  Build a {@link GoogleApiClient} that will authenticate the user and allow the application
-     *  to connect to Fitness APIs. The scopes included should match the scopes your app needs
-     *  (see documentation for details). Authentication will occasionally fail intentionally,
-     *  and in those cases, there will be a known resolution, which the OnConnectionFailedListener()
-     *  can address. Examples of this include the user never having signed in before, or having
-     *  multiple accounts on the device and needing to specify which account to use, etc.
-     */
     private void buildFitnessClient() {
-        // Create the Google API Client
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.API)
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
@@ -121,12 +97,8 @@ public class MainActivity extends ActionBarActivity {
 
                             @Override
                             public void onConnected(Bundle bundle) {
-                                Log.i(TAG, "Connected!!!");
-                                // Now you can make calls to the Fitness APIs.
-                                // Put application specific code here.
-                                // [END auth_build_googleapiclient_beginning]
-                                //  What to do? Find some data sources!
-                                 registerFitnessDataListener();
+                                // start application specific code here
+                                registerFitnessDataListener();
                             }
 
                             @Override
@@ -172,9 +144,7 @@ public class MainActivity extends ActionBarActivity {
                 )
                 .build();
     }
-    // [END auth_build_googleapiclient_ending]
 
-    // [START auth_connection_flow_in_activity_lifecycle_methods]
     @Override
     protected void onStart() {
         super.onStart();
@@ -186,6 +156,7 @@ public class MainActivity extends ActionBarActivity {
     @Override
     protected void onStop() {
         super.onStop();
+        // Disconnect from Fitness API
         if (mClient.isConnected()) {
             mClient.disconnect();
         }
@@ -211,8 +182,8 @@ public class MainActivity extends ActionBarActivity {
     }
 
     /**
-     * Register a listener with the Sensors API for the provided {@link DataSource} and
-     * {@link DataType} combo.
+     * Register a listener with the Sensors API for TYPE_ACTIVITY_SAMPLE.
+     * Furthermore set the displayed text to the current activity.
      */
     private void registerFitnessDataListener() {
         mListener = new OnDataPointListener() {
@@ -261,25 +232,18 @@ public class MainActivity extends ActionBarActivity {
                 mClient,
                 new SensorRequest.Builder()
                         .setDataType(DataType.TYPE_ACTIVITY_SAMPLE)
-                        .setSamplingRate(10, TimeUnit.SECONDS)  // sample once per minute
+                        .setSamplingRate(10, TimeUnit.SECONDS)
                         .build(),
                 mListener);
     }
 
     /**
-     * Unregister the listener with the Sensors API.
+     * Unregister the listener
      */
     private void unregisterFitnessDataListener() {
         if (mListener == null) {
-            // This code only activates one listener at a time.  If there's no listener, there's
-            // nothing to unregister.
             return;
         }
-
-        // [START unregister_data_listener]
-        // Waiting isn't actually necessary as the unregister call will complete regardless,
-        // even if called from within onStop, but a callback can still be added in order to
-        // inspect the results.
         Fitness.SensorsApi.remove(
                 mClient,
                 mListener)
@@ -293,11 +257,11 @@ public class MainActivity extends ActionBarActivity {
                         }
                     }
                 });
-        // [END unregister_data_listener]
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+
         // Inflate the menu; this adds items to the action bar if it is present.
         getMenuInflater().inflate(R.menu.main, menu);
         return true;
@@ -306,6 +270,8 @@ public class MainActivity extends ActionBarActivity {
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
+
+        // Unregister listener by selecting an option from the menu
         if (id == R.id.action_unregister_listener) {
             unregisterFitnessDataListener();
             return true;
@@ -315,6 +281,7 @@ public class MainActivity extends ActionBarActivity {
 
     /**
      *  Initialize a custom log class that outputs both to in-app targets and logcat.
+     *  Class provided by Google.
      */
     private void initializeLogging() {
         // Wraps Android's native log framework.
