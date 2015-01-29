@@ -1,4 +1,6 @@
 /*
+ * Heavily modified by Mats Schade
+ *
  * Copyright (C) 2014 Google, Inc.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -13,6 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package com.matsschade.collectactivities;
 
 import android.content.Intent;
@@ -91,12 +94,15 @@ public class MainActivity extends ActionBarActivity {
     private void buildFitnessClient() {
         mClient = new GoogleApiClient.Builder(this)
                 .addApi(Fitness.API)
+                // Scope defines what type of permission is needed to get events.
+                // Check and update often, if using new types of events!
                 .addScope(new Scope(Scopes.FITNESS_ACTIVITY_READ))
                 .addConnectionCallbacks(
                         new GoogleApiClient.ConnectionCallbacks() {
 
                             @Override
                             public void onConnected(Bundle bundle) {
+                                Log.i(TAG, "Connected!!!");
                                 // start application specific code here
                                 registerFitnessDataListener();
                             }
@@ -281,7 +287,7 @@ public class MainActivity extends ActionBarActivity {
 
     /**
      *  Initialize a custom log class that outputs both to in-app targets and logcat.
-     *  Class provided by Google.
+     *  Classes  provided by Google under the Apache License, Version 2.0.
      */
     private void initializeLogging() {
         // Wraps Android's native log framework.
