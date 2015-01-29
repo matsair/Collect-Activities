@@ -30,6 +30,7 @@ import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.common.Scopes;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.GoogleApiClient.ConnectionCallbacks;
+import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.common.api.Status;
@@ -125,29 +126,7 @@ public class MainActivity extends ActionBarActivity {
                                 // Put application specific code here.
                                 // [END auth_build_googleapiclient_beginning]
                                 //  What to do? Find some data sources!
-
-                                // Use runnable to run findFitnessDataSources() every minute
-                                Runnable runnable = new Runnable() {
-
-                                    @Override
-                                    public void run() {
-                                        try{
-                                            findFitnessDataSources();
-                                            handler.postDelayed(this, 10000);
-                                        }
-                                        catch (Exception e) {
-                                            Log.i(TAG, "Something wrong with interval handler");
-                                        }
-                                        finally{
-                                            //also call the same runnable
-                                            handler.postDelayed(this, 10000);
-                                        }
-                                    }
-                                };
-                                handler.postDelayed(runnable, 10000);
-
-
-                                // [START auth_build_googleapiclient_ending]
+                                 registerFitnessDataListener();
                             }
 
                             @Override
@@ -230,51 +209,12 @@ public class MainActivity extends ActionBarActivity {
         super.onSaveInstanceState(outState);
         outState.putBoolean(AUTH_PENDING, authInProgress);
     }
-    // [END auth_connection_flow_in_activity_lifecycle_methods]
-
-    /**
-     * Find available data sources and attempt to register on a specific {@link DataType}.
-     * If the application cares about a data type but doesn't care about the source of the data,
-     * this can be skipped entirely, instead calling
-     *     {@link com.google.android.gms.fitness.SensorsApi
-     *     #register(GoogleApiClient, SensorRequest, DataSourceListener)},
-     * where the {@link SensorRequest} contains the desired data type.
-     */
-    private void findFitnessDataSources() {
-        // [START find_data_sources]
-        Fitness.SensorsApi.findDataSources(mClient, new DataSourcesRequest.Builder()
-                // At least one datatype must be specified.
-                .setDataTypes(DataType.TYPE_ACTIVITY_SAMPLE)
-                        // Can specify whether data type is raw or derived.
-                .setDataSourceTypes(DataSource.TYPE_DERIVED)
-                .build())
-                .setResultCallback(new ResultCallback<DataSourcesResult>() {
-                    @Override
-                    public void onResult(DataSourcesResult dataSourcesResult) {
-                        Log.i(TAG, "Result: " + dataSourcesResult.getStatus().toString());
-                        for (DataSource dataSource : dataSourcesResult.getDataSources()) {
-                            Log.i(TAG, "Data source found: " + dataSource.toString());
-                            Log.i(TAG, "Data Source type: " + dataSource.getDataType().getName());
-
-                            //Let's register a listener to receive Activity data!
-//                            if (dataSource.getDataType().equals(DataType.TYPE_ACTIVITY_SAMPLE)
-//                                    && mListener == null) {
-//                                Log.i(TAG, "Data source for ACTIVITY_SAMPLE found!  Registering.");
-                                registerFitnessDataListener(dataSource,
-                                        DataType.TYPE_ACTIVITY_SAMPLE);
-//                            }
-                        }
-                    }
-                });
-        // [END find_data_sources]
-    }
 
     /**
      * Register a listener with the Sensors API for the provided {@link DataSource} and
      * {@link DataType} combo.
      */
-    private void registerFitnessDataListener(DataSource dataSource, DataType dataType) {
-        // [START register_data_listener]
+    private void registerFitnessDataListener() {
         mListener = new OnDataPointListener() {
             @Override
             public void onDataPoint(final DataPoint dataPoint) {
@@ -312,35 +252,18 @@ public class MainActivity extends ActionBarActivity {
                                     default:
                                         activity.setText("Not Working");
                                 }
-
+                                Log.i(TAG, detectedActivity);
                             }
                         });
-
-                    // Log.i(TAG, "Detected DataPoint field: " + field.getName());
-                    Log.i(TAG, "Detected DataPoint value: " + val);
                 }
-
         };
-
         Fitness.SensorsApi.add(
                 mClient,
                 new SensorRequest.Builder()
-                        .setDataSource(dataSource) // Optional but recommended for custom data sets.
-                        .setDataType(dataType) // Can't be omitted.
-                        .setSamplingRate(5, TimeUnit.SECONDS)
+                        .setDataType(DataType.TYPE_ACTIVITY_SAMPLE)
+                        .setSamplingRate(10, TimeUnit.SECONDS)  // sample once per minute
                         .build(),
-                mListener)
-                .setResultCallback(new ResultCallback<Status>() {
-                    @Override
-                    public void onResult(Status status) {
-                        if (status.isSuccess()) {
-                            Log.i(TAG, "Listener registered!");
-                        } else {
-                            Log.i(TAG, "Listener not registered.");
-                        }
-                    }
-                });
-        // [END register_data_listener]
+                mListener);
     }
 
     /**
